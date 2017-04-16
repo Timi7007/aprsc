@@ -14,23 +14,9 @@ use Data::Dumper;
 
 my $debug = 0;
 
-sub txrx($$$$$)
+sub rx($$$$)
 {
-	my($ok, $i_tx, $i_rx, $tx, $rx) = @_;
-	
-	warn "sending: $tx\n" if ($debug);
-	my $sent = $i_tx->send_packet($tx);
-	
-	warn "sent\n" if ($debug);
-	
-	if (!$sent) {
-		&$ok(0, 1, "Failed to send line to server: '$tx'");
-		return;
-	}
-	
-	if ($i_tx->{'state'} ne 'connected') {
-		&$ok(1, 0, "Server TX connection error after sending: '$tx': " . $i_tx->{'error'});
-	}
+	my($ok, $i_rx, $tx, $rx) = @_;
 	
 	warn "receiving\n" if ($debug);
 	
@@ -53,6 +39,27 @@ sub txrx($$$$$)
 	}
 	
 	&$ok(1, 1, "ok");
+}
+
+sub txrx($$$$$)
+{
+	my($ok, $i_tx, $i_rx, $tx, $rx) = @_;
+	
+	warn "sending: $tx\n" if ($debug);
+	my $sent = $i_tx->send_packet($tx);
+	
+	warn "sent\n" if ($debug);
+	
+	if (!$sent) {
+		&$ok(0, 1, "Failed to send line to server: '$tx'");
+		return;
+	}
+	
+	if ($i_tx->{'state'} ne 'connected') {
+		&$ok(1, 0, "Server TX connection error after sending: '$tx': " . $i_tx->{'error'});
+	}
+	
+	rx($ok, $i_rx, $tx, $rx);
 }
 
 sub should_drop($$$$$;$$)
